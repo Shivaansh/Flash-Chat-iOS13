@@ -15,6 +15,7 @@ class LoginViewController: UIViewController {
     
 
     @IBAction func loginPressed(_ sender: UIButton) {
+        self.performSegue(withIdentifier: "loginToChat", sender: UIButton.self)
     }
     
 }
