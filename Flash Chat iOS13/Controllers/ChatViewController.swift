@@ -34,41 +34,47 @@ class ChatViewController: UIViewController {
     
     func loadMessages()
     {
-        messages = []
-        db.collection(K.FStore.collectionName).getDocuments { (querySnapshot, err) in
-                if let e = err {
-                    print("Error getting documents: \(e)")
-                } else {
-                    if let documents = querySnapshot?.documents
+                
+        db.collection(K.FStore.collectionName)
+            .order(by: K.FStore.dateField)
+            .addSnapshotListener { (querySnapshot, err) in
+        self.messages = []
+        if let e = err
+        {
+            print("Error getting documents: \(e)")
+        } else
+        {
+            if let documents = querySnapshot?.documents
+            {
+                for document in documents
+                {
+                    let data = document.data()
+                    if let messageSender = data[K.FStore.senderField] as? String, let messageBody = data[K.FStore.bodyField] as? String
                     {
-                        for document in documents
-                        {
-                            let data = document.data()
-                            if let messageSender = data[K.FStore.senderField] as? String, let messageBody = data[K.FStore.bodyField] as? String
-                            {
-                                let newMessage = Message(sender: messageSender, body: messageBody)
-                                self.messages.append(newMessage)
+                        let newMessage = Message(sender: messageSender, body: messageBody)
+                        self.messages.append(newMessage)
                                 
-                                DispatchQueue.main.async {
-                                    self.tableView.reloadData()
-                                }
+                        DispatchQueue.main.async
+                            {
+                                self.tableView.reloadData()
                             }
-                        }
                     }
                 }
+            }
         }
-        
-
     }
+}
     
     @IBAction func sendPressed(_ sender: UIButton) {
         //send button
-
+        
         if let body = messageTextfield.text, let sender = Auth.auth().currentUser?.email
         {
             db.collection(K.FStore.collectionName).addDocument(data:
                 [K.FStore.senderField : sender,
-                 K.FStore.bodyField: body])
+                 K.FStore.bodyField: body,
+                 K.FStore.dateField: Date().timeIntervalSince1970
+                ])
             { (error) in
                 if let e = error
                 {
@@ -88,11 +94,11 @@ class ChatViewController: UIViewController {
         let firebaseAuth = Auth.auth()
         do
         {
-          try firebaseAuth.signOut()
+            try firebaseAuth.signOut()
             navigationController?.popToRootViewController(animated: true)
-
+            
         } catch let signOutError as NSError {
-          print ("Error signing out: %@", signOutError)
+            print ("Error signing out: %@", signOutError)
         }
     }
 }
