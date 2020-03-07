@@ -57,6 +57,8 @@ class ChatViewController: UIViewController {
                         DispatchQueue.main.async
                             {
                                 self.tableView.reloadData()
+                                let indexPath = IndexPath(row: self.messages.count - 1, section: 0)
+                                self.tableView.scrollToRow(at: indexPath, at: .top, animated: true)
                             }
                     }
                 }
@@ -82,10 +84,14 @@ class ChatViewController: UIViewController {
                 }else
                 {
                     print("Successfully uploaded data")
+                    DispatchQueue.main.async {
+                        self.messageTextfield.text = ""
+                    }
                 }
             }
         }
         //loadMessages()
+        
         
     }
     
@@ -109,8 +115,25 @@ extension ChatViewController: UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: K.cellIdentifier, for: indexPath) as! MessageCell
         cell.label.text = messages[indexPath.row].body
+        
+        if messages[indexPath.row].sender == Auth.auth().currentUser?.email {
+            //message sent by user
+            cell.senderAvatarImage.isHidden = true
+            cell.avatarImageView.isHidden = false
+            cell.messageBubble.backgroundColor = UIColor.systemPink
+            cell.label.textColor = UIColor(named: K.BrandColors.lightBlue)
+        }else{
+            //message received by user
+            cell.senderAvatarImage.isHidden = false
+            cell.avatarImageView.isHidden = true
+            cell.messageBubble.backgroundColor = UIColor.systemBlue
+            cell.label.textColor = UIColor(named: K.BrandColors.lightBlue)
+        }
+        
+        
         return cell
     }
     
